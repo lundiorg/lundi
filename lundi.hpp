@@ -66,6 +66,18 @@ class state {
     return value;
   }
 
+  variant call_r(int nargs) {
+    lua_call(state_, nargs, 1);
+    return pop();
+  }
+
+  template<typename T, typename... Args>
+  variant call_r(int nargs, T t, Args... args) {
+    variant value = t;
+    boost::apply_visitor(detail::push_variant(state_), value);
+    return call_r(nargs + 1, args...);
+  }
+
 public:
   state() 
   : state_(luaL_newstate()) {
@@ -83,6 +95,12 @@ public:
 
   void eval(std::string const &program) {
     luaL_dostring(state_, program.c_str());
+  }
+
+  template<typename... Args>
+  variant call(std::string const &name, Args... args) {
+    lua_getglobal(state_, name.c_str());
+    return call_r(0, args...);
   }
 };
 

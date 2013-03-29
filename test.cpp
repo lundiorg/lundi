@@ -25,4 +25,7 @@ int main() {
   lua.set_global("e", false);
   lua.eval(program);
   std::cout << lua.get_global("f") << std::endl;
+
+  lua.eval("function my_add(i, j, k) return i + j + k end");
+  std::cout << lua.call("my_add", 3, 6, 4) << std::endl;
 }
