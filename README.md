@@ -1,4 +1,4 @@
 lundi
 =====
 
-Lua C++ wrapper prototype
+Lua C++ wrapper prototype.
