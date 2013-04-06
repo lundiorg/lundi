@@ -8,187 +8,181 @@
 #include <boost/fusion/functional/invocation/invoke.hpp>
 #include <lua.hpp>
 
+#include "lundi/nil.hpp"
+
 namespace lua {
-
-// Nil type used to provide optionality in the variant
-struct nil{};
-
-template<typename CharT, typename Traits>
-std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> &os, nil n) {
-  return os << "nil";
-}
 
 typedef boost::variant<signed int, double, bool, char const*, nil> variant;
 
 namespace detail {
 
 class push_variant : public boost::static_visitor<> {
-  lua_State *state_;
+    lua_State *state_;
 public:
-  push_variant(lua_State *state) : state_(state) {}
+    push_variant(lua_State *state) : state_(state) {}
 
-  void operator()(signed int i) const {
-    lua_pushinteger(state_, i);
-  }
+    void operator()(signed int i) const {
+        lua_pushinteger(state_, i);
+    }
 
-  void operator()(double d) const {
-    lua_pushnumber(state_, d);
-  }
+    void operator()(double d) const {
+        lua_pushnumber(state_, d);
+    }
 
-  void operator()(bool b) const {
-    lua_pushboolean(state_, b);
-  }
+    void operator()(bool b) const {
+        lua_pushboolean(state_, b);
+    }
 
-  void operator()(char const *szc) const {
-    lua_pushstring(state_, szc);
-  }
+    void operator()(char const *szc) const {
+        lua_pushstring(state_, szc);
+    }
 
-  void operator()(nil n) const {
-    lua_pushnil(state_);
-  }
+    void operator()(nil n) const {
+        lua_pushnil(state_);
+    }
 };
 
 class function_wrapper {
 public:
-  virtual int operator()(lua_State *state) = 0;
-  virtual ~function_wrapper() {};
+    virtual int operator()(lua_State *state) = 0;
+    virtual ~function_wrapper() {};
 };
 
 struct fetch_parameter {
-  lua_State *state;
-  fetch_parameter(lua_State *s) : state(s) {}
+    lua_State *state;
+    fetch_parameter(lua_State *s) : state(s) {}
 
-  void operator()(std::string& t) const {
-    t = lua_tostring(state, -1);
-    lua_pop(state, 1);
-  }
+    void operator()(std::string& t) const {
+        t = lua_tostring(state, -1);
+        lua_pop(state, 1);
+    }
 
-  void operator()(int& t) const {
-    t = lua_tonumber(state, -1);
-    lua_pop(state, 1);
-  }
+    void operator()(int& t) const {
+        t = lua_tonumber(state, -1);
+        lua_pop(state, 1);
+    }
 };
 
 template<typename Ret, typename... Args>
 class function_wrapper_impl : public function_wrapper {
 public:
-  typedef Ret FuncType(Args...);
+    typedef Ret FuncType(Args...);
 
-  function_wrapper_impl(FuncType &f) : func(f) {}
+    function_wrapper_impl(FuncType &f) : func(f) {}
 
-  int operator()(lua_State *state) {
-    boost::fusion::vector<Args...> params;
-    boost::fusion::reverse_view<decltype(params)> r_params(params);
-    for_each(r_params, fetch_parameter(state));
-    variant result = invoke(func, params);
-    boost::apply_visitor(detail::push_variant(state), result);
-    return 1;
-  }
+    int operator()(lua_State *state) {
+        boost::fusion::vector<Args...> params;
+        boost::fusion::reverse_view<decltype(params)> r_params(params);
+        for_each(r_params, fetch_parameter(state));
+        variant result = invoke(func, params);
+        boost::apply_visitor(detail::push_variant(state), result);
+        return 1;
+    }
 
 private:
-  FuncType *func;
+    FuncType *func;
 };
 
 template<typename Ret, typename... Args>
 function_wrapper  *make_wrapper(Ret (&function)(Args...)) {
-  return new function_wrapper_impl<Ret, Args...>(function);
+    return new function_wrapper_impl<Ret, Args...>(function);
 }
 
 int dispatch_to_wrapper(lua_State *state) {
-  void *light_ud = lua_touserdata(state, lua_upvalueindex(1));
-  function_wrapper *wrapper = reinterpret_cast<function_wrapper *>(light_ud);
-  return (*wrapper)(state);
+    void *light_ud = lua_touserdata(state, lua_upvalueindex(1));
+    function_wrapper *wrapper = reinterpret_cast<function_wrapper *>(light_ud);
+    return (*wrapper)(state);
 }
 
 } // detail
 
 class state {
-  lua_State *state_;
-  std::function<void(std::string const&)> error_func_;
+    lua_State *state_;
+    std::function<void(std::string const&)> error_func_;
 
-  variant peek(int index) {
-    switch(lua_type(state_, index)) {
-      case LUA_TNUMBER:
-        return lua_tonumber(state_, index);
-      case LUA_TBOOLEAN:
-        return lua_toboolean(state_, index);
-      case LUA_TSTRING:
-        return lua_tostring(state_, index);
+    variant peek(int index) {
+        switch(lua_type(state_, index)) {
+            case LUA_TNUMBER:
+                return lua_tonumber(state_, index);
+            case LUA_TBOOLEAN:
+                return lua_toboolean(state_, index);
+            case LUA_TSTRING:
+                return lua_tostring(state_, index);
+        }
+        return nil();
     }
-    return nil();
-  }
 
-  variant pop() {
-    variant value = peek(-1);
-    lua_pop(state_, 1);
-    return value;
-  }
-
-  // handles error values returned by various C API function
-  // It isn't intended to be called directly!
-  void protect (int err) {
-    if (err != 0)
-    {
-      std::string error_msg (lua_tostring(state_, -1));
-      lua_pop(state_, -1); // remove error message
-      if (error_func_)
-        error_func_(error_msg);
+    variant pop() {
+        variant value = peek(-1);
+        lua_pop(state_, 1);
+        return value;
     }
-  }
 
-  variant call_r(int nargs) {
-    protect(lua_pcall(state_, nargs, 1, 0));
-    return pop();
-  }
+    // handles error values returned by various C API function
+    // It isn't intended to be called directly!
+    void protect (int err) {
+        if (err != 0)
+        {
+            std::string error_msg (lua_tostring(state_, -1));
+            lua_pop(state_, -1); // remove error message
+            if (error_func_)
+            error_func_(error_msg);
+        }
+    }
 
-  template<typename T, typename... Args>
-  variant call_r(int nargs, T t, Args... args) {
-    variant value = t;
-    boost::apply_visitor(detail::push_variant(state_), value);
-    return call_r(nargs + 1, args...);
-  }
+    variant call_r(int nargs) {
+        protect(lua_pcall(state_, nargs, 1, 0));
+        return pop();
+    }
 
-  void register_wrapper(std::string const &name, detail::function_wrapper *wrapper) {
-    lua_pushlightuserdata(state_, wrapper);
-    lua_pushcclosure(state_, detail::dispatch_to_wrapper, 1);
-    lua_setglobal(state_, name.c_str());
-  }
+    template<typename T, typename... Args>
+    variant call_r(int nargs, T t, Args... args) {
+        variant value = t;
+        boost::apply_visitor(detail::push_variant(state_), value);
+        return call_r(nargs + 1, args...);
+    }
 
-  std::vector<detail::function_wrapper *> wrappers;
+    void register_wrapper(std::string const &name, detail::function_wrapper *wrapper) {
+        lua_pushlightuserdata(state_, wrapper);
+        lua_pushcclosure(state_, detail::dispatch_to_wrapper, 1);
+        lua_setglobal(state_, name.c_str());
+    }
+
+    std::vector<detail::function_wrapper *> wrappers;
 
 public:
-  template<typename Functor>
-  state(Functor&& error_func) 
-  : state_(luaL_newstate())
-  , error_func_(std::forward<Functor>(error_func)) {
-  }
+    template<typename Functor>
+    state(Functor&& error_func) 
+        : state_(luaL_newstate())
+        , error_func_(std::forward<Functor>(error_func)) {
+    }
 
-  void set_global(std::string const &name, variant value) {
-    boost::apply_visitor(detail::push_variant(state_), value);
-    lua_setglobal(state_, name.c_str());
-  }
+    void set_global(std::string const &name, variant value) {
+        boost::apply_visitor(detail::push_variant(state_), value);
+        lua_setglobal(state_, name.c_str());
+    }
 
-  variant get_global(std::string const &name) {
-    lua_getglobal(state_, name.c_str());
-    return pop();
-  }
+    variant get_global(std::string const &name) {
+        lua_getglobal(state_, name.c_str());
+        return pop();
+    }
 
-  void eval(std::string const &program) {
-    protect(luaL_dostring(state_, program.c_str()));
-  }
+    void eval(std::string const &program) {
+        protect(luaL_dostring(state_, program.c_str()));
+    }
 
-  template<typename... Args>
-  variant call(std::string const &name, Args... args) {
-    lua_getglobal(state_, name.c_str());
-    return call_r(0, args...);
-  }
+    template<typename... Args>
+        variant call(std::string const &name, Args... args) {
+        lua_getglobal(state_, name.c_str());
+        return call_r(0, args...);
+    }
 
-  template<typename FuncType>
-  void register_function(std::string const &name, FuncType &func) {
-    auto wrapper = detail::make_wrapper(func);
-    register_wrapper(name, wrapper);
-    wrappers.push_back(wrapper);
-  }
+    template<typename FuncType>
+    void register_function(std::string const &name, FuncType &func) {
+        auto wrapper = detail::make_wrapper(func);
+        register_wrapper(name, wrapper);
+        wrappers.push_back(wrapper);
+    }
 };
 
 } // lua
