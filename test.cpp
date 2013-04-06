@@ -8,7 +8,7 @@ int plop_xyz(int x, int y, std::string z) {
 }
 
 int main() {
-  lua::state lua;
+  lua::state lua([](std::string const& s) { std::cerr << "Lua ERROR : " << s << std::endl; });
 
   lua.eval("a = 9");
   std::cout << lua.get_global("a") << std::endl;
@@ -37,4 +37,7 @@ int main() {
   lua.register_function("plop_xyz", plop_xyz);
   lua.eval("x = plop_xyz(2, 6, \"hello\")");
   std::cout << lua.get_global("x") << std::endl;
+
+  // Check if error handling works correctly
+  lua.eval("x[5]");
 }

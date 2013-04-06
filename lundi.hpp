@@ -104,6 +104,7 @@ int dispatch_to_wrapper(lua_State *state) {
 
 class state {
   lua_State *state_;
+  std::function<void(std::string const&)> error_func_;
 
   variant peek(int index) {
     switch(lua_type(state_, index)) {
@@ -123,8 +124,20 @@ class state {
     return value;
   }
 
+  // handles error values returned by various C API function
+  // It isn't intended to be called directly!
+  void protect (int err) {
+    if (err != 0)
+    {
+      std::string error_msg (lua_tostring(state_, -1));
+      lua_pop(state_, -1); // remove error message
+      if (error_func_)
+        error_func_(error_msg);
+    }
+  }
+
   variant call_r(int nargs) {
-    lua_call(state_, nargs, 1);
+    protect(lua_pcall(state_, nargs, 1, 0));
     return pop();
   }
 
@@ -144,8 +157,10 @@ class state {
   std::vector<detail::function_wrapper *> wrappers;
 
 public:
-  state() 
-  : state_(luaL_newstate()) {
+  template<typename Functor>
+  state(Functor&& error_func) 
+  : state_(luaL_newstate())
+  , error_func_(std::forward<Functor>(error_func)) {
   }
 
   void set_global(std::string const &name, variant value) {
@@ -159,7 +174,7 @@ public:
   }
 
   void eval(std::string const &program) {
-    luaL_dostring(state_, program.c_str());
+    protect(luaL_dostring(state_, program.c_str()));
   }
 
   template<typename... Args>
