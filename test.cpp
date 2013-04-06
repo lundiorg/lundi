@@ -2,6 +2,11 @@
 
 #include "lundi.hpp"
 
+int plop_xyz(int x, int y, std::string z) {
+  std::cout << x << " " << y << " " << z << std::endl;
+  return 11;
+}
+
 int main() {
   lua::state lua;
 
@@ -28,4 +33,8 @@ int main() {
 
   lua.eval("function my_add(i, j, k) return i + j + k end");
   std::cout << lua.call("my_add", 3, 6, 4) << std::endl;
+
+  lua.register_function("plop_xyz", plop_xyz);
+  lua.eval("x = plop_xyz(2, 6, \"hello\")");
+  std::cout << lua.get_global("x") << std::endl;
 }
