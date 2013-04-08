@@ -32,9 +32,9 @@ int main() {
     std::cout << lua.get_global("f") << std::endl;
 
     lua.eval("function my_add(i, j, k) return i + j + k end");
-    std::cout << lua.call("my_add", 3, 6, 4) << std::endl;
+    std::cout << lua["my_add"](3, 6, 4) << std::endl;
 
-    lua.register_function("plop_xyz", plop_xyz);
+    lua["plop_xyz"] = plop_xyz;
     lua.eval("x = plop_xyz(2, 6, \"hello\")");
     std::cout << lua.get_global("x") << std::endl;
 

@@ -20,12 +20,22 @@ class proxy {
         parent_.set_global(name_, v);
     }
 
+    template<typename FuncType>
+    void operator=(FuncType &func) {
+        parent_.register_function(name_, func);
+    }
+
     Variant get() const {
         return parent_.get_global(name_);
     }
 
     operator Variant() const {
         return get();
+    }
+
+    template<typename... Args>
+    Variant operator() (Args&&... args) {
+        return parent_.call(name_, std::forward<Args>(args)...);
     }
 };
 
