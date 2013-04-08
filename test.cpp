@@ -20,12 +20,12 @@ int main() {
     lua.set_global("d", "hello");
     std::cout << lua.get_global("d") << std::endl;
 
-    lua.set_global("e", true);
+    lua["e"] = true;
     std::cout << lua.get_global("e") << std::endl;
 
     std::string program = "if e then f = a else f = d end";
     lua.eval(program);
-    std::cout << lua.get_global("f") << std::endl;
+    std::cout << lua["f"].get() << std::endl;
 
     lua.set_global("e", false);
     lua.eval(program);

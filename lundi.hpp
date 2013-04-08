@@ -8,6 +8,7 @@
 #include <lua.hpp>
 
 #include "lundi/variant.hpp"
+#include "lundi/proxy.hpp"
 
 namespace lua {
 
@@ -136,6 +137,10 @@ public:
     variant get_global(std::string const &name) {
         lua_getglobal(state_, name.c_str());
         return pop();
+    }
+
+    proxy<variant, state> operator[](std::string name) {
+        return proxy<variant, state>(std::move(name), *this);
     }
 
     void eval(std::string const &program) {
