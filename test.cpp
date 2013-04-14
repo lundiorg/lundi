@@ -6,7 +6,7 @@
 #include "lundi.hpp"
 
 #define CATCH_CONFIG_MAIN
-#include <Catch.hpp>
+#include <catch.hpp>
 
 namespace {
 
