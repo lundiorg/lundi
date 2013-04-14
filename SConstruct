@@ -26,5 +26,6 @@ else:
     env = Environment(ENV = os.environ)
     # required on Travis because of gcc4.6 and clang 3.1
     env.Append(CPPFLAGS=["-Wall", "-g", "-std=c++0x"])
+    env.Append(CPPPATH=["/usr/include/lua5.1/"])
 
 test = env.Program("test.cpp", LIBS="lua5.1")
