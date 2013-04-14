@@ -19,7 +19,7 @@ if platform.system() == 'Windows':
     env.Append(CPPPATH=[
         boost_path,
         lua_path + "/include",
-        "include"
+        "lundi"
     ])
     env.Append(CPPFLAGS=["-Wall", "-g", "-std=c++11"])
     env.Append(LIBPATH=[lua_path+"/lib"])
@@ -29,7 +29,7 @@ else:
     env.Append(CPPFLAGS=["-Wall", "-g", "-std=c++0x"])
     env.Append(CPPPATH=[
         "/usr/include/lua5.1/",
-        "include"
+        "lundi"
     ])
 
 test = env.Program("test.cpp", LIBS="lua5.1")
