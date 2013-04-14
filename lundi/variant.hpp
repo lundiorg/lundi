@@ -2,7 +2,7 @@
 
 #include <boost/variant.hpp>
 #include <lua.hpp>
-#include "lundi/nil.hpp"
+#include "nil.hpp"
 
 namespace lua {
 

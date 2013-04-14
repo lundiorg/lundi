@@ -10,4 +10,13 @@ std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> 
     return os << "nil";
 }
 
+bool operator==(nil, nil) { return true; }
+
+// these are unambiguously worse matches than the above
+template<typename T>
+bool operator==(nil, T const&) { return false; }
+
+template<typename T>
+bool operator==(T const&, nil) { return false; }
+
 }

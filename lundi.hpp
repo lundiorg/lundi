@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <functional>
+#include <exception>
+#include <stdexcept>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
@@ -11,6 +14,8 @@
 #include "lundi/proxy.hpp"
 
 namespace lua {
+
+class exception : public std::runtime_error { public: exception(const std::string& s) : runtime_error(s) { } };
 
 namespace detail {
 
@@ -80,6 +85,7 @@ class state {
                 return lua_toboolean(state_, index);
             case LUA_TSTRING:
                 return lua_tostring(state_, index);
+            // TODO : function?
         }
         return nil();
     }
