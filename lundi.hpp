@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <exception>
+#include <stdexcept>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
