@@ -94,7 +94,7 @@ TEST_CASE( "simple/call", "Lua function is called with a few parameters from C++
     REQUIRE_NOTHROW( lua.call("foo") );
 }
 
-TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++",  ) {
+TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++" ) {
     lua::state lua(&defaultErrorReporter);
 
     REQUIRE_NOTHROW( lua.eval("function my_add(i, j, k) return i + j + k end") );
