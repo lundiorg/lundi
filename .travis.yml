@@ -1,0 +1,9 @@
+before_install:
+  - sudo apt-get install lua5.1
+  - sudo apt-get install liblua5.1-0-dev
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+script: scons
