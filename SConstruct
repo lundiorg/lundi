@@ -25,7 +25,8 @@ if platform.system() == 'Windows':
     env.Append(CPPFLAGS=["-Wall", "-g", "-std=c++11"])
     env.Append(LIBPATH=[lua_path+"/lib"])
 else:
-    env = Environment(tools = ['clang'], ENV = os.environ)
+    env = Environment(ENV = os.environ)
+    env["CXX"] = "clang++"
     # required on Travis because of gcc4.6 and clang 3.1
     env.Append(CPPFLAGS=["-Wall", "-g", "-std=c++0x"])
     env.Append(CPPPATH=[
