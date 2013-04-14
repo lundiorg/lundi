@@ -6,7 +6,7 @@ namespace lua {
 
 template<typename Variant, typename State>
 class proxy {
-    friend State;
+    friend class State;
     std::string name_;
     State &parent_;
 
