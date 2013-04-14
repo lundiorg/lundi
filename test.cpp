@@ -1,43 +1,119 @@
+
 #include <iostream>
+#include <string>
+#include <exception>
 
 #include "lundi.hpp"
+
+#define CATCH_CONFIG_MAIN
+#include <catch.hpp>
+
+namespace {
 
 int plop_xyz(int x, int y, std::string z) {
     std::cout << x << " " << y << " " << z << std::endl;
     return 11;
 }
 
-int main() {
-    lua::state lua([](std::string const& s) { std::cerr << "Lua ERROR : " << s << std::endl; });
+// equivalent of Boost.Variant operator==
+template<typename V, typename T>
+inline bool equals(V const& variant, T const& value){
+    return boost::get<T>(variant) && boost::get<T>(variant) == value; 
+}
 
-    lua.eval("a = 9");
-    std::cout << lua.get_global("a") << std::endl;
+//[](std::string const& s) { std::cerr << "Lua ERROR : " << s << std::endl; }
+void defaultErrorReporter(std::string const& s) {
+    std::cerr << "Lua ERROR : " << s << std::endl; 
+}
 
-    lua.set_global("b", 2.);
-    lua.eval("c = a + b");
-    std::cout << lua.get_global("c") << std::endl;
+void exceptionErrorReporter(std::string const& s) {
+    throw lua::exception(s);
+}
+
+}
+
+TEST_CASE( "simple/set_global", "Check if the set_global works properly." ) {
+    lua::state lua(&exceptionErrorReporter);
+
+    lua.set_global("a", 9);
+    REQUIRE_NOTHROW( lua.eval("if a ~= 9 then error() end") );
 
     lua.set_global("d", "hello");
-    std::cout << lua.get_global("d") << std::endl;
+    REQUIRE_NOTHROW( lua.eval("if d ~= 'hello' then error() end") );
 
-    lua["e"] = true;
-    std::cout << lua.get_global("e") << std::endl;
+    lua.set_global("e", true);
+    REQUIRE_NOTHROW( lua.eval("if e ~= true then error() end") );
+}
 
-    std::string program = "if e then f = a else f = d end";
+TEST_CASE( "simple/get_global", "Tests if the get_global function works properly." ) {
+    lua::state lua(&defaultErrorReporter);
+
+    lua.eval("a = 9");
+    lua::variant a = lua.get_global("a");
+    REQUIRE( a == lua::variant(9.0) );
+
+    lua.eval("b = nil");
+    lua::variant b = lua.get_global("b");
+    REQUIRE( b == lua::variant(lua::nil()) );
+
+    lua.eval("d = 'hello'");
+    lua::variant d = lua.get_global("d");
+    REQUIRE( d == lua::variant("hello") );
+
+    lua.eval("e = true");
+    auto e = lua.get_global("e");
+    REQUIRE( e == lua::variant(true) );
+}
+
+TEST_CASE( "simple/addition", "" ) {
+    lua::state lua(&defaultErrorReporter);
+
+    lua.set_global("b", 0.2);
+    lua.eval("c = 9 + b");
+    auto c =  lua.get_global("c");
+
+    CAPTURE(c);
+
+    REQUIRE( equals(c, 9.2) );
+}
+
+TEST_CASE( "simple/if", "" ) {
+    lua::state lua(&defaultErrorReporter);
+
+    std::string program = "if true then f = 0.1 else f = 'test' end";
     lua.eval(program);
-    std::cout << lua["f"].get() << std::endl;
+    auto f = lua.get_global("f");
 
-    lua.set_global("e", false);
-    lua.eval(program);
-    std::cout << lua.get_global("f") << std::endl;
+    REQUIRE( equals(f, 0.1) );
+}
 
-    lua.eval("function my_add(i, j, k) return i + j + k end");
-    std::cout << lua["my_add"](3, 6, 4) << std::endl;
+TEST_CASE( "simple/call", "Lua function is called with a few parameters from C++" ) {
+    lua::state lua(&exceptionErrorReporter);
 
-    lua["plop_xyz"] = plop_xyz;
-    lua.eval("x = plop_xyz(2, 6, \"hello\")");
+    REQUIRE_NOTHROW( lua.eval("function foo() end") );
+    REQUIRE_NOTHROW( lua.call("foo") );
+}
+
+TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++" ) {
+    lua::state lua(&defaultErrorReporter);
+
+    REQUIRE_NOTHROW( lua.eval("function my_add(i, j, k) return i + j + k end") );
+    REQUIRE_NOTHROW( lua.call("my_add", 3, 6, 4) );
+}
+
+TEST_CASE( "simple/callCppFunction", "Desc" ) {
+    lua::state lua(&defaultErrorReporter);
+
+    lua.register_function("plop_xyz", plop_xyz);
+    lua.eval("x = plop_xyz(2, 6, 'hello')");
     std::cout << lua.get_global("x") << std::endl;
 
-    // Check if error handling works correctly
-    lua.eval("x[5]");
+    REQUIRE_NOTHROW ( );
 }
+
+TEST_CASE( "negative/basicError", "Check if error handling works correctly" ) {
+    lua::state lua(&exceptionErrorReporter);
+
+    REQUIRE_THROWS( lua.eval("nil[5]") );
+}
+
