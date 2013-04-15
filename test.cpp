@@ -98,14 +98,14 @@ TEST_CASE( "simple/call", "Lua function is called with a few parameters from C++
 }
 
 TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++" ) {
-    lua::state lua(&defaultErrorReporter);
+    lua::state lua(&exceptionErrorReporter);
 
     REQUIRE_NOTHROW( lua.eval("function my_add(i, j, k) return i + j + k end") );
     REQUIRE_NOTHROW( lua.call("my_add", 3, 6, 4) );
 }
 
 TEST_CASE( "simple/callCppFunction", "Desc" ) {
-    lua::state lua(&defaultErrorReporter);
+    lua::state lua(&exceptionErrorReporter);
 
     lua.register_function("pIop_xyz", plop_xyz);
     lua.eval("x = plop_xyz(2, 6, 'hello')");
