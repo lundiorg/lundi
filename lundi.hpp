@@ -4,6 +4,7 @@
 #include <functional>
 #include <exception>
 #include <stdexcept>
+#include <string>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
@@ -82,7 +83,7 @@ class state {
             case LUA_TNUMBER:
                 return lua_tonumber(state_, index);
             case LUA_TBOOLEAN:
-                return lua_toboolean(state_, index);
+                return static_cast<bool>(lua_toboolean(state_, index));
             case LUA_TSTRING:
                 return lua_tostring(state_, index);
             // TODO : function?
@@ -101,10 +102,17 @@ class state {
     void protect (int err) {
         if (err != 0)
         {
-            std::string error_msg (lua_tostring(state_, -1));
-            lua_pop(state_, -1); // remove error message
+            // check if any error message is present
+            std::string error_msg;
+            if (!lua_isstring(state_, -1)) {
+                error_msg = "<no error message>";
+            }
+            else {
+                error_msg = std::string(lua_tostring(state_, -1));
+                lua_pop(state_, -1); // remove error message
+            }
             if (error_func_)
-            error_func_(error_msg);
+                error_func_(error_msg);
         }
     }
 
@@ -133,12 +141,19 @@ public:
     state(Functor&& error_func) 
         : state_(luaL_newstate())
         , error_func_(std::forward<Functor>(error_func)) {
+        // loads basic, table, I/O, string and math libraries
+        luaL_openlibs(state_);
     }
 
     void set_global(std::string const &name, variant value) {
         boost::apply_visitor(detail::push_variant(state_), value);
         lua_setglobal(state_, name.c_str());
     }
+
+    // This overload is used to fix "broken" bool overload with literals
+    // It might be needed to set up a proper bool type from scratch.
+    template <std::size_t N>
+    void set_global(std::string const& name, char const(&value)[N]) { set_global(name, std::string(value)); }
 
     variant get_global(std::string const &name) {
         lua_getglobal(state_, name.c_str());

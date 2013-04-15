@@ -36,13 +36,16 @@ TEST_CASE( "simple/set_global", "Check if the set_global works properly." ) {
     lua::state lua(&exceptionErrorReporter);
 
     lua.set_global("a", 9);
-    REQUIRE_NOTHROW( lua.eval("if a ~= 9 then error() end") );
+    REQUIRE_NOTHROW( lua.eval("if a ~= 9 then error('wrong value') end") );
 
     lua.set_global("d", "hello");
-    REQUIRE_NOTHROW( lua.eval("if d ~= 'hello' then error() end") );
+    REQUIRE_NOTHROW( lua.eval("if d ~= 'hello' then error('expected \\'hello\\', got '.. tostring(d)) end") );
 
-    lua.set_global("e", true);
-    REQUIRE_NOTHROW( lua.eval("if e ~= true then error() end") );
+    lua.set_global("e", std::string("hello"));
+    REQUIRE_NOTHROW( lua.eval("if d ~= 'hello' then error('expected \\'hello\\', got '.. tostring(d)) end") );
+
+    lua.set_global("f", true);
+    REQUIRE_NOTHROW( lua.eval("if f ~= true then error('wrong value') end") );
 }
 
 TEST_CASE( "simple/get_global", "Tests if the get_global function works properly." ) {
