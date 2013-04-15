@@ -107,7 +107,7 @@ TEST_CASE( "simple/callWithParameters", "Lua function is called with a few param
 TEST_CASE( "simple/callCppFunction", "Desc" ) {
     lua::state lua(&defaultErrorReporter);
 
-    lua.register_function("plop_xyz", plop_xyz);
+    lua.register_function("pIop_xyz", plop_xyz);
     lua.eval("x = plop_xyz(2, 6, 'hello')");
     std::cout << lua.get_global("x") << std::endl;
 
