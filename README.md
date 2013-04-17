@@ -77,4 +77,4 @@ Lundi uses C++11 Template Metaprogramming techniques and Boost libraries (most n
 
 ###The name
 
-*Lundi*, commonly known as "Monday" in French, has much older etymology. It used to mean "day of the moon"; that will probably make more sense if you check what Lua exactly means - it so happens it's "moon" in Portugeese. That way, we present you "The Day of Lua", as we believe that Lua is indeed a great language of the future, and combined with C++ will allow you to create applications and games that are safe, fast, flexible and extensible.
+*Lundi*, commonly known as "Monday" in French, has much older etymology. It used to mean "day of the moon"; that will probably make more sense if you check what Lua exactly means - it so happens it's "moon" in Portuguese. That way, we present you "The Day of Lua", as we believe that Lua is indeed a great language of the future, and combined with C++ will allow you to create applications and games that are safe, fast, flexible and extensible.
