@@ -3,14 +3,14 @@ Lundi
 
 [![Build Status](https://travis-ci.org/lundiorg/lundi.png?branch=master)](https://travis-ci.org/lundiorg/lundi)
 
-###Lundi is easy-to-use, modern and straightforward API for integrating Lua in the C++ code.
+###Lundi is an easy-to-use, modern and straightforward API for integrating Lua in C++ code.
 
-[Lua programming language](http://lua.org) is a small and embeddable language written in pure ANSI C. As such, it doesn't provide an API that's common enough for C++ developers and has a lot of restrictions.
-Lua C API operates on the *stack* concept to exchange data between the host and the embedded applications. It allows users to register C functions to Lua, but there have to meet certain requirements; namely they must take only one parameter, a pointer to `lua_State`, and manually take all the parameters from the stack and then put the results back.
+[The Lua programming language](http://lua.org) is a small and embeddable language written in pure ANSI C. As such, it doesn't provide an API that's common enough for C++ developers and has a lot of restrictions.
+The Lua C API operates on a *stack* concept to exchange data between the host and the embedded applications. It allows users to register C functions to Lua, but they have to meet certain requirements; namely they must take only one parameter, a pointer to `lua_State`, and manually take all the parameters from the stack and then put the results back.
 
-There exist many C++ - Lua libraries, most known being probably OOLua and SWIG. While being quite nice pieces of code, they take approach of exposing whole C++ classes for Lua, so that C++ developer in theory can write code that's no different from normal C++.
+There exist many C++ - Lua libraries, the most known being probably OOLua and SWIG. While being quite nice pieces of code, they take the approach of exposing whole C++ classes to Lua, so that the C++ developer in theory can write code that's no different from normal C++.
 
-With Lundi, we made sure that the design intentions of Lua are preserved. Rather than wrapping your code in ugly macros, it provides simple and consistent interface of interacting with virtual machine on level of basic operations. Whilst not everything works yet, you can already get a glimpse of how Lundi is intended to be used.
+With Lundi, we made sure that the design intentions of Lua are preserved. Rather than wrapping your code in ugly macros, it provides a simple and consistent interface for interacting with the virtual machine on the level of basic operations. Whilst not everything works yet, you can already get a glimpse of how Lundi is intended to be used.
 
 ###Short, motivating examples
 
@@ -27,9 +27,9 @@ lua::state lua;
 auto a = lua["a"];
 ```
 
-In C version, numerous problems can appear. "a" might be nonexistent and of different type. You have to (obviously) pass a pointer to `lua_State` to every call. And then you have to ensure that `-1` is a correct stack index (the stack might overflow). On the other hand, C++ call is quite safe. It takes care of all these things for you, and if anything really bad happens, an exception will be trown, so you can easily take care of that.
+In the C version, numerous problems can appear. "a" might be nonexistent and of a different type. You have to (obviously) pass a pointer to `lua_State` to every call. And then you have to ensure that `-1` is a correct stack index (the stack might overflow). On the other hand, the C++ call is quite safe. It takes care of all these things for you, and if anything really bad happens, an exception will be thrown, so you can easily take care of that.
 
-Perhaps that wasn't the best example yet. Let's look at the functions. As I said earlier, you can bind C++ functions using `lua_CFunction` type. That's however far from convenient:
+Perhaps that wasn't the best example yet. Let's look at the functions. As I said earlier, you can bind C++ functions using the `lua_CFunction` type. That's however far from convenient:
 
 ```cpp
 void plop_xyz (bool x, double y, std::string const& z) {
@@ -53,7 +53,7 @@ lua_pushcfunction(lua_plop_xyz);
 lua_setglobal("foo");
 ```
 
-That obviously lacks error checking and type checking, so the proper version would be even longer. Now, let's compare it to Lundi version:
+That obviously lacks error checking and type checking, so the proper version would be even longer. Now, let's compare it to the Lundi version:
 ```cpp
 lua::state lua;
 lua.register_function("foo", plop_xyz);
@@ -73,7 +73,7 @@ The call is obviously variadic, so pass as many weird values as you might want t
 
 ###Insides
 
-Lundi uses C++11 Template Metaprogramming techniques and Boost libraries (most notably Fusion) heavily. Such techniques were required to make generating complicated structure of C calls on demand. Because of that, you will need quite modern C++ compiler to take use of it. We compiled it successfully under gcc-4.7 and 4.8, clang 3.2, Intel C++ Compiler 13.1, and, right now MSVC 2012 November CTP, althought the last one is subject to change.
+Lundi uses C++11 Template Metaprogramming techniques and Boost libraries (most notably Fusion) heavily. Such techniques were required to generate complicated structures of C calls on demand. Because of that, you will need a quite modern C++ compiler to take use of it. We compiled it successfully under gcc-4.7 and 4.8, clang 3.2, Intel C++ Compiler 13.1, and, right now MSVC 2012 November CTP, althought the last one is subject to change.
 
 ###The name
 
