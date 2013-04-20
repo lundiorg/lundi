@@ -97,6 +97,17 @@ TEST_CASE( "simple/call", "Lua function is called with a few parameters from C++
     REQUIRE_NOTHROW( lua.call("foo") );
 }
 
+TEST_CASE( "simple/evalStream", "The VM evaluates a stream's contents using a reader" ) {
+    lua::state lua(&exceptionErrorReporter);
+
+    std::stringstream script;
+    int g = 9;
+    script << "g = " << g << ";";
+
+    REQUIRE_NOTHROW( lua.eval(script) );
+    REQUIRE( equals(lua["g"], 9) );
+}
+
 TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++" ) {
     lua::state lua(&exceptionErrorReporter);
 
