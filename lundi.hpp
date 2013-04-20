@@ -10,6 +10,8 @@
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/functional/invocation/invoke.hpp>
+#include <boost/type_traits/is_base_of.hpp>
+#include <istream>
 #include <lua.hpp>
 
 #include "lundi/variant.hpp"
@@ -82,7 +84,25 @@ int dispatch_to_wrapper(lua_State *state) {
     return (*wrapper)(state);
 }
 
+template<typename StreamT>
+static const char *read_stream(StreamT &stream, std::vector<char> &buffer, size_t &size) {
+    stream.read(&buffer[0], buffer.size());
+    size = stream.gcount();
+    return &buffer[0];
+}
+
+template<typename StreamT>
+static const char *stream_reader(lua_State *L, void *data, size_t *size) {
+    auto &info = *reinterpret_cast<std::pair<std::reference_wrapper<StreamT>, std::vector<char>>*>(data);
+    return read_stream<StreamT>(info.first, info.second, *size);
+}
+
 } // detail
+
+template<typename StreamT>
+char const *stream_name(StreamT &stream) {
+    return "<stream>";
+}
 
 class state {
     lua_State *state_;
@@ -172,6 +192,14 @@ public:
 
     proxy<variant, state> operator[](std::string name) {
         return proxy<variant, state>(std::move(name), *this);
+    }
+
+    template<typename StreamT>
+    typename boost::enable_if<boost::is_base_of<std::istream, StreamT>, void>::type eval(StreamT &stream) {
+        using namespace detail;
+        auto reader_info = std::make_pair(std::ref(stream), std::vector<char>(4096));
+        protect(lua_load(state_, &stream_reader<StreamT>, &reader_info, stream_name(stream)));
+        protect(lua_pcall(state_, 0, LUA_MULTRET, 0));
     }
 
     void eval(std::string const &program) {
