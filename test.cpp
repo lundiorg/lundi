@@ -105,7 +105,7 @@ TEST_CASE( "simple/evalStream", "The VM evaluates a stream's contents using a re
     script << "g = " << g << ";";
 
     REQUIRE_NOTHROW( lua.eval(script) );
-    REQUIRE( equals(lua.get_global("g"), 9) );
+    REQUIRE( equals(lua.get_global("g"), 9.0) );
 }
 
 TEST_CASE( "simple/callWithParameters", "Lua function is called with a few parameters from C++" ) {
