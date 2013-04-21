@@ -9,6 +9,8 @@
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/functional/invocation/invoke.hpp>
+#include <boost/type_traits/is_base_of.hpp>
+#include <istream>
 #include <lua.hpp>
 
 #include "lundi/variant.hpp"
@@ -182,7 +184,8 @@ public:
         return proxy<variant, state>(std::move(name), *this);
     }
 
-    template<typename StreamT>
+    template<typename StreamT,
+             typename boost::enable_if<boost::is_base_of<std::istream, StreamT>, int>::type = 0>
     void eval(StreamT &stream) {
         using namespace detail;
         auto reader_info = std::make_pair(std::ref(stream), std::vector<char>(4096));
