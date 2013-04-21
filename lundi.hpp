@@ -184,9 +184,8 @@ public:
         return proxy<variant, state>(std::move(name), *this);
     }
 
-    template<typename StreamT,
-             typename boost::enable_if<boost::is_base_of<std::istream, StreamT>, int>::type = 0>
-    void eval(StreamT &stream) {
+    template<typename StreamT>
+    typename boost::enable_if<boost::is_base_of<std::istream, StreamT>, void>::type eval(StreamT &stream) {
         using namespace detail;
         auto reader_info = std::make_pair(std::ref(stream), std::vector<char>(4096));
         protect(lua_load(state_, &stream_reader<StreamT>, &reader_info, stream_name(stream)));
