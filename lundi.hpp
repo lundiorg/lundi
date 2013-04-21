@@ -186,7 +186,7 @@ public:
     void eval(StreamT &stream) {
         using namespace detail;
         auto reader_info = std::make_pair(std::ref(stream), std::vector<char>(4096));
-        protect(lua_load(state_, &stream_reader<StreamT>, &reader_info, stream_name(stream), 0));
+        protect(lua_load(state_, &stream_reader<StreamT>, &reader_info, stream_name(stream)));
         protect(lua_pcall(state_, 0, LUA_MULTRET, 0));
     }
 
