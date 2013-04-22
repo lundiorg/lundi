@@ -13,6 +13,7 @@
 
 #include "lundi/variant.hpp"
 #include "lundi/proxy.hpp"
+#include "lundi/make_function.hpp"
 
 namespace lua {
 
@@ -44,9 +45,9 @@ struct fetch_parameter {
 template<typename Ret, typename... Args>
 class function_wrapper_impl : public function_wrapper {
 public:
-    typedef Ret FuncType(Args...);
+    typedef std::function<Ret(Args...)> FuncType;
 
-    function_wrapper_impl(FuncType &f) : func(f) {}
+    function_wrapper_impl(FuncType const &f) : func(f) {}
 
     int operator()(lua_State *state) {
         boost::fusion::vector<Args...> params;
@@ -58,11 +59,11 @@ public:
     }
 
 private:
-    FuncType *func;
+    FuncType func;
 };
 
 template<typename Ret, typename... Args>
-function_wrapper  *make_wrapper(Ret (&function)(Args...)) {
+function_wrapper  *make_wrapper(std::function<Ret(Args...)> const &function) {
     return new function_wrapper_impl<Ret, Args...>(function);
 }
 
@@ -175,8 +176,8 @@ public:
     }
 
     template<typename FuncType>
-    void register_function(std::string const &name, FuncType &func) {
-        auto wrapper = detail::make_wrapper(func);
+    void register_function(std::string const &name, FuncType const &func) {
+        auto wrapper = detail::make_wrapper(make_function(func));
         register_wrapper(name, wrapper);
         wrappers.push_back(wrapper);
     }
