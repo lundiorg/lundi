@@ -5,6 +5,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/view/reverse_view.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
@@ -16,7 +17,15 @@
 
 namespace lua {
 
-class exception : public std::runtime_error { public: exception(const std::string& s) : runtime_error(s) { } };
+class exception : public virtual std::exception {
+public:
+    exception(const std::string& s) : s(s) {}
+    exception(std::string&& s) : s(std::move(s)) {}
+
+    char const* what() const noexcept override { return s.data(); }
+private:
+    std::string s;
+};
 
 namespace detail {
 
