@@ -114,6 +114,19 @@ TEST_CASE( "simple/callCppFunction", "Desc" ) {
     REQUIRE_NOTHROW ( );
 }
 
+TEST_CASE( "simple/callLambda", "A C++ lambda is exposed to lua and called") {
+    lua::state lua(&exceptionErrorReporter);
+
+    int x = 0;
+    lua.register_function("set_x", [&](int new_x){
+        x = new_x;
+        return 0;
+    });
+
+    lua.eval("set_x(9)");
+    REQUIRE( x == 9 );
+}
+
 TEST_CASE( "negative/basicError", "Check if error handling works correctly" ) {
     lua::state lua(&exceptionErrorReporter);
 
