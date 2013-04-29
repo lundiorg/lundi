@@ -116,6 +116,18 @@ TEST_CASE( "simple/callCppFunction", "Desc" ) {
 
 TEST_CASE( "simple/callLambda", "A C++ lambda is exposed to lua and called") {
     lua::state lua(&exceptionErrorReporter);
+    
+    int x = 0;
+
+    lua.register_function("foo", [&x]{ x = 1; });
+
+    lua.eval("foo()");
+
+    REQUIRE( x == 1 );
+}
+
+TEST_CASE( "advanced/callLambda2", "A C++ lambda is exposed to lua and called") {
+    lua::state lua(&exceptionErrorReporter);
 
     int x = 0;
     lua.register_function("set_x", [&](int new_x){
