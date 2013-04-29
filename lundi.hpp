@@ -20,6 +20,8 @@
 
 namespace lua {
 
+#define noexcept
+
 class exception : public virtual std::exception {
 public:
     exception(const std::string& s) : s(s) {}
