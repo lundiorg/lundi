@@ -58,18 +58,18 @@ class function_wrapper_impl : public function_wrapper {
 public:
     typedef std::function<Ret(Args...)> FuncType;
 
-    template<typename Ret, typename... Args>
+    template<typename FRet, typename... FArgs>
     struct function_invoker {
-        int operator()(FuncType& func, boost::fusion::vector<Args...>& params, lua_State* state) {
+        int operator()(FuncType& func, boost::fusion::vector<FArgs...>& params, lua_State* state) {
             variant result = invoke(func, params);
             boost::apply_visitor(detail::push_variant(state), result);
             return 1;
         }
     };
 
-    template<typename... Args>
-    struct function_invoker<void, Args...> {
-        int operator()(FuncType& func, boost::fusion::vector<Args...>& params, lua_State* dummy) {
+    template<typename... FArgs>
+    struct function_invoker<void, FArgs...> {
+        int operator()(FuncType& func, boost::fusion::vector<FArgs...>& params, lua_State* dummy) {
             // void-return means we are not pushing anything back to the stack
             invoke(func, params);
             // and the number of arguments returned is 0
