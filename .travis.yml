@@ -1,7 +1,12 @@
 before_install:
+  - sudo add-apt-repository --yes ppa:apokluda/boost1.53
+  - sudo apt-get --yes update
+
   - sudo apt-get install lua5.1
   - sudo apt-get install liblua5.1-0-dev
-  - sudo apt-get install libboost-dev
+
+  - sudo apt-get --yes install libboost1.53-all-dev
+
 language: cpp
 compiler: clang
 
