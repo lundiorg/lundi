@@ -11,6 +11,8 @@
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/functional/invocation/invoke.hpp>
 #include <boost/type_traits/is_base_of.hpp>
+// this is required for BOOST_NOEXCEPT and MVSC compatibility
+#include <boost/config/suffix.hpp>
 #include <istream>
 #include <lua.hpp>
 
@@ -20,14 +22,12 @@
 
 namespace lua {
 
-#define noexcept
-
 class exception : public virtual std::exception {
 public:
     exception(const std::string& s) : s(s) {}
     exception(std::string&& s) : s(std::move(s)) {}
 
-    char const* what() const noexcept override { return s.data(); }
+    char const* what() const BOOST_NOEXCEPT override { return s.data(); }
 private:
     std::string s;
 };
