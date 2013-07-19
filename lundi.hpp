@@ -11,6 +11,8 @@
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/functional/invocation/invoke.hpp>
 #include <boost/type_traits/is_base_of.hpp>
+// this is required for BOOST_NOEXCEPT and MVSC compatibility
+#include <boost/config/suffix.hpp>
 #include <istream>
 #include <lua.hpp>
 
@@ -25,7 +27,7 @@ public:
     exception(const std::string& s) : s(s) {}
     exception(std::string&& s) : s(std::move(s)) {}
 
-    char const* what() const noexcept override { return s.data(); }
+    char const* what() const BOOST_NOEXCEPT override { return s.data(); }
 private:
     std::string s;
 };
@@ -58,19 +60,39 @@ class function_wrapper_impl : public function_wrapper {
 public:
     typedef std::function<Ret(Args...)> FuncType;
 
-    function_wrapper_impl(FuncType const &f) : func(f) {}
+    template<typename FRet, typename... FArgs>
+    struct function_invoker {
+        int operator()(FuncType& func, boost::fusion::vector<FArgs...>& params, lua_State* state) {
+            variant result = invoke(func, params);
+            boost::apply_visitor(detail::push_variant(state), result);
+            return 1;
+        }
+    };
+
+    template<typename... FArgs>
+    struct function_invoker<void, FArgs...> {
+        int operator()(FuncType& func, boost::fusion::vector<FArgs...>& params, lua_State* dummy) {
+            // void-return means we are not pushing anything back to the stack
+            invoke(func, params);
+            // and the number of arguments returned is 0
+            return 0;
+        }
+    };
+
+    //TODO: tuple returns
+
+    function_wrapper_impl(FuncType const &f) : func_(f) {}
 
     int operator()(lua_State *state) {
         boost::fusion::vector<Args...> params;
         boost::fusion::reverse_view<decltype(params)> r_params(params);
         for_each(r_params, fetch_parameter(state));
-        variant result = invoke(func, params);
-        boost::apply_visitor(detail::push_variant(state), result);
-        return 1;
+
+        return function_invoker<Ret, Args...>()(func_, params, state);
     }
 
 private:
-    FuncType func;
+    FuncType func_;
 };
 
 template<typename Ret, typename... Args>
