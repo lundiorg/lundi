@@ -3,6 +3,11 @@
 #include <string>
 #include <exception>
 
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/transform_view.hpp>
+#include <boost/phoenix/phoenix.hpp>
+
 #include "lundi.hpp"
 
 #define CATCH_CONFIG_MAIN
@@ -10,10 +15,51 @@
 
 namespace {
 
-int plop_xyz(int x, int y, std::string z) {
-    std::cout << x << " " << y << " " << z << std::endl;
-    return 11;
-}
+    typedef boost::mpl::vector<signed int, double, bool, std::string, lua::nil> basic_types;
+    //typedef boost::mpl::vector<double> basic_types;
+
+    namespace c_funs {
+
+        // left for historical purposes
+        int plop_xyz(int x, int y, std::string z) {
+            std::cout << x << " " << y << " " << z << std::endl;
+            return 11;
+        }
+
+        // the naming pattern goes:
+        // {return_type}_{number_of_args}
+
+        // basic empty functions
+        namespace basic {
+            template<typename A>
+            void void_unary(A a) { }
+            template<typename A>
+            void void_binary_same(A a, A b) { }
+            template<typename A, typename B>
+            void void_binary_diff(A a, B b) { }
+
+            // function without parameters
+            template<typename Ret>
+            Ret nonparam() { return Ret{}; }
+
+            // functions returning nonparameter
+            template<typename A>
+            A same_unary(A a) { return a; }
+            template<typename A>
+            A same_binary_same(A a, A b) { return a; }
+            template<typename A, typename B>
+            A first_binary_diff(A a, B b) { return a; }
+            template<typename A, typename B>
+            B second_binary_diff(A a, B b) { return b; }
+        }
+
+        // functions with aggregates
+        /*namespace aggregate{
+            template<class Aggr, typename A>
+            void void_unary(Aggr<A> a) { }
+            // TODO add more
+        }*/
+    }
 
 // equivalent of Boost.Variant operator==
 template<typename V, typename T>
@@ -29,6 +75,47 @@ void defaultErrorReporter(std::string const& s) {
 void exceptionErrorReporter(std::string const& s) {
     throw lua::exception(s);
 }
+
+}
+
+template<typename F>
+struct calls {
+    lua::state& state;
+    F& f;
+
+    calls(lua::state& state, F& f) : state(state), f(f) {}
+
+    template<typename... Sig>
+    void operator() (Sig...) {
+        state.register_function("foo", f<Sig...>);
+    }
+};
+
+struct void_calls {
+    void_calls(lua::state& state) : state(state) {}
+    lua::state& state;
+
+    template<typename A>
+    void operator() (A) {
+        state.register_function("foo", c_funs::basic::void_unary<A>);
+        state.register_function("foo", c_funs::basic::void_binary_same<A>);
+    }
+};
+
+TEST_CASE( "coverage/void_call", "Check if basic calls in form of void(T) compile.") {
+    lua::state lua (&exceptionErrorReporter);
+    namespace mpl = boost::mpl;
+
+    mpl::for_each<basic_types>(void_calls(lua));
+
+    //lua.register_function("foo", c_funs::basic::void_unary<double>);
+    
+    // that will work for functors.
+    //mpl::for_each<basic_types>(calls<decltype(c_funs::basic::void_unary)>(lua, c_funs::basic::void_unary));
+}
+
+TEST_CASE(" coverage/lambda_call", "Check if basic calls in form of void <lambda>(T) compile.") {
+    lua::state lua(&exceptionErrorReporter);
 
 }
 
@@ -118,7 +205,7 @@ TEST_CASE( "simple/callWithParameters", "Lua function is called with a few param
 TEST_CASE( "simple/callCppFunction", "Desc" ) {
     lua::state lua(&exceptionErrorReporter);
 
-    lua.register_function("plop_xyz", plop_xyz);
+    lua.register_function("plop_xyz", c_funs::plop_xyz);
     lua.eval("x = plop_xyz(2, 6, 'hello')");
     std::cout << lua.get_global("x") << std::endl;
 
