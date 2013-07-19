@@ -19,6 +19,7 @@
 #include "lundi/variant.hpp"
 #include "lundi/proxy.hpp"
 #include "lundi/make_function.hpp"
+#include "lundi/version.hpp"
 
 namespace lua {
 
