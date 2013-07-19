@@ -101,6 +101,7 @@ function_wrapper  *make_wrapper(std::function<Ret(Args...)> const &function) {
     return new function_wrapper_impl<Ret, Args...>(function);
 }
 
+inline
 int dispatch_to_wrapper(lua_State *state) {
     void *light_ud = lua_touserdata(state, lua_upvalueindex(1));
     function_wrapper *wrapper = reinterpret_cast<function_wrapper *>(light_ud);
