@@ -102,7 +102,7 @@ struct void_calls {
     }
 };
 
-TEST_CASE( "coverage/void_call", "Check if basic calls in form of void(T) compile.") {
+TEST_CASE( "coverage/void_call", "Check if basic calls in form of void(T) compile." ) {
     lua::state lua (&exceptionErrorReporter);
     namespace mpl = boost::mpl;
 
@@ -114,8 +114,27 @@ TEST_CASE( "coverage/void_call", "Check if basic calls in form of void(T) compil
     //mpl::for_each<basic_types>(calls<decltype(c_funs::basic::void_unary)>(lua, c_funs::basic::void_unary));
 }
 
-TEST_CASE(" coverage/lambda_call", "Check if basic calls in form of void <lambda>(T) compile.") {
+TEST_CASE( "coverage/void_lambda_call", "Check if basic calls in form of void <lambda>(T) compile." ) {
     lua::state lua(&exceptionErrorReporter);
+
+    lua.register_function("foo", [](int){});
+    lua.register_function("foo", [](lua::nil){});
+    lua.register_function("foo", [](std::string){});
+    lua.register_function("foo", [](double){});
+    lua.register_function("foo", [](bool){});
+}
+
+TEST_CASE("coverage/type_lambda_call", "Check if basic calls in form of void <lambda>(T) compile.") {
+    lua::state lua(&exceptionErrorReporter);
+
+    lua.register_function("foo", [](int){ return int {}; });
+    lua.register_function("foo", [](lua::nil){ return lua::nil {}; });
+    lua.register_function("foo", [](std::string){ return std::string {}; });
+    lua.register_function("foo", [](double){ return double {}; });
+    lua.register_function("foo", [](bool){ return bool {}; });
+}
+
+TEST_CASE("coverage/functor_call", "Check if basic calls in form of void <functor>(T) compile.") {
 
 }
 
