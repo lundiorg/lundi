@@ -10,6 +10,7 @@ std::basic_ostream<CharT, Traits> &operator<<(std::basic_ostream<CharT, Traits> 
     return os << "nil";
 }
 
+inline
 bool operator==(nil, nil) { return true; }
 
 // these are unambiguously worse matches than the above
