@@ -10,6 +10,16 @@ typedef boost::variant<signed int, double, std::string, bool, nil> variant;
 
 namespace detail {
 
+template<typename T>
+struct variant_friendly {
+    typedef T type;
+};
+
+template<>
+struct variant_friendly<unsigned int> {
+    typedef double type;
+};
+
 class push_variant : public boost::static_visitor<> {
     lua_State *state_;
 public:
