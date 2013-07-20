@@ -6,7 +6,7 @@
 
 namespace lua {
 
-typedef boost::variant<signed int, double, std::string, bool, nil> variant;
+typedef boost::variant<signed int, double, std::string, bool, nil_type> variant;
 
 namespace detail {
 
@@ -31,7 +31,7 @@ public:
         lua_pushstring(state_, szc.c_str());
     }
 
-    void operator()(nil n) const {
+    void operator()(nil_type n) const {
         lua_pushnil(state_);
     }
 };
