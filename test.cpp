@@ -148,7 +148,7 @@ TEST_CASE( "advanced/callLambdaReturns", "Checks for lambdas returning values") 
     lua.register_function("f", []{ return true; });
     lua.register_function("g", []{ return std::string("str"); });
     lua.register_function("h", []{});
-    lua.register_function("i", []{ return lua::nil(); });
+    lua.register_function("i", []{ return lua::nil; });
 }
 
 TEST_CASE( "advanced/callLambda2", "A C++ lambda is exposed to lua and called") {
