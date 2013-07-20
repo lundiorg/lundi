@@ -1,0 +1,8 @@
+# Archives downloaded by Get-Lua.ps1
+*.tar
+*.tar.gz
+
+# Visual Studio stuff
+*.sdf
+*.user
+Debug
