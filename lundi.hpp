@@ -19,6 +19,7 @@
 #include "lundi/variant.hpp"
 #include "lundi/proxy.hpp"
 #include "lundi/make_function.hpp"
+#include "lundi/version.hpp"
 
 namespace lua {
 
@@ -138,9 +139,10 @@ private:
 
 template<typename Ret, typename... Args>
 function_wrapper  *make_wrapper(std::function<Ret(Args...)> const &function) {
-    return new function_wrapper_impl<Ret, Args...>(function);
+    return new function_wrapper_impl<typename variant_friendly<Ret>::type, Args...>(function);
 }
 
+inline
 int dispatch_to_wrapper(lua_State *state) {
     void *light_ud = lua_touserdata(state, lua_upvalueindex(1));
     function_wrapper *wrapper = reinterpret_cast<function_wrapper *>(light_ud);
@@ -185,7 +187,7 @@ class state {
                 return lua_tostring(state_, index);
             // TODO : function?
         }
-        return nil();
+        return nil;
     }
 
     variant pop() {

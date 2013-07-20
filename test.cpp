@@ -163,7 +163,7 @@ TEST_CASE( "simple/get_global", "Tests if the get_global function works properly
 
     lua.eval("b = nil");
     lua::variant b = lua.get_global("b");
-    REQUIRE( b == lua::variant(lua::nil()) );
+    REQUIRE( b == lua::variant(lua::nil) );
 
     lua.eval("d = 'hello'");
     lua::variant d = lua.get_global("d");
@@ -247,12 +247,14 @@ TEST_CASE( "advanced/callLambdaReturns", "Checks for lambdas returning values") 
     lua::state lua(&exceptionErrorReporter);
 
     lua.register_function("a", []{ return 42; });
-    //lua.register_function("b", []{ return 42u; });
+    lua.register_function("b", []{ return 42u; });
     lua.register_function("c", []{ return 3.14; });
     lua.register_function("d", []{ return 6.28f; });
     lua.register_function("e", []{ return "lol"; });
     lua.register_function("f", []{ return true; });
     lua.register_function("g", []{ return std::string("str"); });
+    lua.register_function("h", []{});
+    lua.register_function("i", []{ return lua::nil(); });
 }
 
 TEST_CASE( "advanced/callLambda2", "A C++ lambda is exposed to lua and called") {
