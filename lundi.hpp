@@ -142,7 +142,7 @@ class state {
                 return lua_tostring(state_, index);
             // TODO : function?
         }
-        return nil();
+        return nil;
     }
 
     variant pop() {

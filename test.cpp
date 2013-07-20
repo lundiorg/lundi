@@ -57,7 +57,7 @@ TEST_CASE( "simple/get_global", "Tests if the get_global function works properly
 
     lua.eval("b = nil");
     lua::variant b = lua.get_global("b");
-    REQUIRE( b == lua::variant(lua::nil()) );
+    REQUIRE( b == lua::variant(lua::nil) );
 
     lua.eval("d = 'hello'");
     lua::variant d = lua.get_global("d");
