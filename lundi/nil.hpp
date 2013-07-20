@@ -6,7 +6,7 @@ namespace lua {
 struct nil_type{};
 
 namespace {
-const nil_type nil;
+nil_type nil;
 }
 
 template<typename CharT, typename Traits>
