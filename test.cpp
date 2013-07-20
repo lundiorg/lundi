@@ -122,7 +122,7 @@ TEST_CASE( "simple/callCppFunction", "Desc" ) {
     lua.eval("x = plop_xyz(2, 6, 'hello')");
     std::cout << lua.get_global("x") << std::endl;
 
-    REQUIRE_NOTHROW ( );
+    REQUIRE_NOTHROW ( 0 );
 }
 
 TEST_CASE( "simple/callLambda", "A C++ lambda is exposed to lua and called") {
