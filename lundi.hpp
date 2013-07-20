@@ -92,7 +92,7 @@ struct fetch_parameter {
         lua_pop(state, 1);
     }
 
-    void operator()(lua::nil&) const {
+    void operator()(lua::nil_type&) const {
         lua_pop(state, 1);
     }
 };

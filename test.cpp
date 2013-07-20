@@ -3,10 +3,8 @@
 #include <string>
 #include <exception>
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/transform_view.hpp>
-#include <boost/phoenix/phoenix.hpp>
+#include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
 
 #include "lundi.hpp"
 
@@ -14,10 +12,6 @@
 #include <catch.hpp>
 
 namespace {
-
-    typedef boost::mpl::vector<signed int, double, bool, std::string, lua::nil> basic_types;
-    //typedef boost::mpl::vector<double> basic_types;
-
     namespace c_funs {
 
         // left for historical purposes
@@ -34,9 +28,9 @@ namespace {
             template<typename A>
             void void_unary(A a) { }
             template<typename A>
-            void void_binary_same(A a, A b) { }
-            template<typename A, typename B>
-            void void_binary_diff(A a, B b) { }
+            void void_binary_first(A a, int) { }
+            template<typename B>
+            void void_binary_second(int, B b) { }
 
             // function without parameters
             template<typename Ret>
@@ -46,92 +40,77 @@ namespace {
             template<typename A>
             A same_unary(A a) { return a; }
             template<typename A>
-            A same_binary_same(A a, A b) { return a; }
-            template<typename A, typename B>
-            A first_binary_diff(A a, B b) { return a; }
-            template<typename A, typename B>
-            B second_binary_diff(A a, B b) { return b; }
+            A first_binary_first(A a, int) { return a; }
+            template<typename B>
+            B second_binary_second(int, B b) { return b; }
         }
 
         // functions with aggregates
         /*namespace aggregate{
-            template<class Aggr, typename A>
-            void void_unary(Aggr<A> a) { }
-            // TODO add more
+        template<class Aggr, typename A>
+        void void_unary(Aggr<A> a) { }
+        // TODO add more
         }*/
     }
 
-// equivalent of Boost.Variant operator==
-template<typename V, typename T>
-inline bool equals(V const& variant, T const& value){
-    return boost::get<T>(variant) && boost::get<T>(variant) == value; 
-}
-
-//[](std::string const& s) { std::cerr << "Lua ERROR : " << s << std::endl; }
-void defaultErrorReporter(std::string const& s) {
-    std::cerr << "Lua ERROR : " << s << std::endl; 
-}
-
-void exceptionErrorReporter(std::string const& s) {
-    throw lua::exception(s);
-}
-
-}
-
-template<typename F>
-struct calls {
-    lua::state& state;
-    F& f;
-
-    calls(lua::state& state, F& f) : state(state), f(f) {}
-
-    template<typename... Sig>
-    void operator() (Sig...) {
-        state.register_function("foo", f<Sig...>);
+    // equivalent of Boost.Variant operator==
+    template<typename V, typename T>
+    inline bool equals(V const& variant, T const& value){
+        return boost::get<T>(variant) && boost::get<T>(variant) == value;
     }
-};
 
-struct void_calls {
-    void_calls(lua::state& state) : state(state) {}
-    lua::state& state;
-
-    template<typename A>
-    void operator() (A) {
-        state.register_function("foo", c_funs::basic::void_unary<A>);
-        state.register_function("foo", c_funs::basic::void_binary_same<A>);
+    //[](std::string const& s) { std::cerr << "Lua ERROR : " << s << std::endl; }
+    void defaultErrorReporter(std::string const& s) {
+        std::cerr << "Lua ERROR : " << s << std::endl;
     }
-};
 
-TEST_CASE( "coverage/void_call", "Check if basic calls in form of void(T) compile." ) {
+    void exceptionErrorReporter(std::string const& s) {
+        throw lua::exception(s);
+    }
+
+}
+
+#define BASIC_TYPES (int)(double)(bool)(std::string)(lua::nil_type)
+
+TEST_CASE( "coverage/register_void_return", "Check if basic calls in form of void(T) compile." ) {
     lua::state lua (&exceptionErrorReporter);
-    namespace mpl = boost::mpl;
 
-    mpl::for_each<basic_types>(void_calls(lua));
+    #define MACRO(r, data, elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_unary<elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_first<elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_second<elem>));
+    BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
+    #undef MACRO
+}
 
-    //lua.register_function("foo", c_funs::basic::void_unary<double>);
-    
-    // that will work for functors.
-    //mpl::for_each<basic_types>(calls<decltype(c_funs::basic::void_unary)>(lua, c_funs::basic::void_unary));
+TEST_CASE(" coverage/register_nonvoid_return", "Check if basic calls in form of void(T) compile.") {
+    lua::state lua(&exceptionErrorReporter);
+
+    #define MACRO(r, data, elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::same_unary<elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::first_binary_first<elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::second_binary_second<elem>));
+        
+    BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
+    #undef MACRO
 }
 
 TEST_CASE( "coverage/void_lambda_call", "Check if basic calls in form of void <lambda>(T) compile." ) {
     lua::state lua(&exceptionErrorReporter);
 
-    lua.register_function("foo", [](int){});
-    lua.register_function("foo", [](lua::nil){});
-    lua.register_function("foo", [](std::string){});
-    lua.register_function("foo", [](double){});
-    lua.register_function("foo", [](bool){});
+    #define MACRO(r, data, elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](elem){}));
+    BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
+    #undef MACRO
 }
 
-TEST_CASE("coverage/type_lambda_call", "Check if basic calls in form of void <lambda>(T) compile.") {
+TEST_CASE("coverage/type_lambda_call", "Check if basic calls in form of T <lambda>(T) compile.") {
     lua::state lua(&exceptionErrorReporter);
 
-    lua.register_function("foo", [](int){ return int {}; });
-    lua.register_function("foo", [](lua::nil){ return lua::nil {}; });
-    lua.register_function("foo", [](std::string){ return std::string {}; });
-    lua.register_function("foo", [](double){ return double {}; });
-    lua.register_function("foo", [](bool){ return bool {}; });
+    #define MACRO(r, data, elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](elem){ return elem {}; }));
+    BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
+    #undef MACRO
 }
 
 TEST_CASE("coverage/functor_call", "Check if basic calls in form of void <functor>(T) compile.") {
@@ -254,7 +233,7 @@ TEST_CASE( "advanced/callLambdaReturns", "Checks for lambdas returning values") 
     lua.register_function("f", []{ return true; });
     lua.register_function("g", []{ return std::string("str"); });
     lua.register_function("h", []{});
-    lua.register_function("i", []{ return lua::nil(); });
+    lua.register_function("i", []{ return lua::nil; });
 }
 
 TEST_CASE( "advanced/callLambda2", "A C++ lambda is exposed to lua and called") {
