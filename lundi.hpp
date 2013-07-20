@@ -98,7 +98,7 @@ private:
 
 template<typename Ret, typename... Args>
 function_wrapper  *make_wrapper(std::function<Ret(Args...)> const &function) {
-    return new function_wrapper_impl<variant_friendly<Ret>::type, Args...>(function);
+    return new function_wrapper_impl<typename variant_friendly<Ret>::type, Args...>(function);
 }
 
 inline
