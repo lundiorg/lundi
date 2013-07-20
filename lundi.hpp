@@ -111,7 +111,7 @@ int dispatch_to_wrapper(lua_State *state) {
 template<typename StreamT>
 static const char *read_stream(StreamT &stream, std::vector<char> &buffer, size_t &size) {
     stream.read(&buffer[0], buffer.size());
-    size = stream.gcount();
+    size = static_cast<size_t>(stream.gcount());
     return &buffer[0];
 }
 

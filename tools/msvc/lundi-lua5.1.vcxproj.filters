@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="lundi">
+      <UniqueIdentifier>{324b5857-ce51-459e-ae16-160e66e2bced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{2e63d198-6ec3-4c54-8c64-a6484a7b9e0e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lundi.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lundi\make_function.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lundi\nil.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lundi\proxy.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lundi\variant.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lundi\version.hpp">
+      <Filter>lundi</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\test.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

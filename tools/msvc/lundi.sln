@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.20617.1 PREVIEW
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lundi-lua5.1", "lundi-lua5.1.vcxproj", "{07D3DCD3-DBA8-45AB-BBE0-A95613108617}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua5.1", "lua5.1.vcxproj", "{A943D9F7-AF52-412F-B842-A0D279029E7F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua5.2", "lua5.2.vcxproj", "{73B0503F-165C-4291-B39C-0960699E7336}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lundi-lua5.2", "lundi-lua5.2.vcxproj", "{34D02E6A-281A-4E90-A77F-39C0531F0CB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07D3DCD3-DBA8-45AB-BBE0-A95613108617}.Debug|Win32.ActiveCfg = Debug|Win32
+		{07D3DCD3-DBA8-45AB-BBE0-A95613108617}.Debug|Win32.Build.0 = Debug|Win32
+		{07D3DCD3-DBA8-45AB-BBE0-A95613108617}.Release|Win32.ActiveCfg = Release|Win32
+		{07D3DCD3-DBA8-45AB-BBE0-A95613108617}.Release|Win32.Build.0 = Release|Win32
+		{A943D9F7-AF52-412F-B842-A0D279029E7F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A943D9F7-AF52-412F-B842-A0D279029E7F}.Debug|Win32.Build.0 = Debug|Win32
+		{A943D9F7-AF52-412F-B842-A0D279029E7F}.Release|Win32.ActiveCfg = Release|Win32
+		{A943D9F7-AF52-412F-B842-A0D279029E7F}.Release|Win32.Build.0 = Release|Win32
+		{73B0503F-165C-4291-B39C-0960699E7336}.Debug|Win32.ActiveCfg = Debug|Win32
+		{73B0503F-165C-4291-B39C-0960699E7336}.Debug|Win32.Build.0 = Debug|Win32
+		{73B0503F-165C-4291-B39C-0960699E7336}.Release|Win32.ActiveCfg = Release|Win32
+		{73B0503F-165C-4291-B39C-0960699E7336}.Release|Win32.Build.0 = Release|Win32
+		{34D02E6A-281A-4E90-A77F-39C0531F0CB6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{34D02E6A-281A-4E90-A77F-39C0531F0CB6}.Debug|Win32.Build.0 = Debug|Win32
+		{34D02E6A-281A-4E90-A77F-39C0531F0CB6}.Release|Win32.ActiveCfg = Release|Win32
+		{34D02E6A-281A-4E90-A77F-39C0531F0CB6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
