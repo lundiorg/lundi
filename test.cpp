@@ -75,10 +75,10 @@ namespace {
 TEST_CASE( "coverage/register_void_return", "Check if basic calls in form of void(T) compile." ) {
     lua::state lua (&exceptionErrorReporter);
 
-    #define MACRO(r, data, elem) \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_unary<elem>)); \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_first<elem>)); \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_second<elem>));
+    #define MACRO(r, data, Elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_unary<Elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_first<Elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::void_binary_second<Elem>));
     BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
     #undef MACRO
 }
@@ -86,10 +86,10 @@ TEST_CASE( "coverage/register_void_return", "Check if basic calls in form of voi
 TEST_CASE(" coverage/register_nonvoid_return", "Check if basic calls in form of void(T) compile.") {
     lua::state lua(&exceptionErrorReporter);
 
-    #define MACRO(r, data, elem) \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::same_unary<elem>)); \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::first_binary_first<elem>)); \
-        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::second_binary_second<elem>));
+    #define MACRO(r, data, Elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::same_unary<Elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::first_binary_first<Elem>)); \
+        REQUIRE_NOTHROW(lua.register_function("foo", c_funs::basic::second_binary_second<Elem>));
         
     BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
     #undef MACRO
@@ -98,8 +98,9 @@ TEST_CASE(" coverage/register_nonvoid_return", "Check if basic calls in form of 
 TEST_CASE( "coverage/void_lambda_call", "Check if basic calls in form of void <lambda>(T) compile." ) {
     lua::state lua(&exceptionErrorReporter);
 
-    #define MACRO(r, data, elem) \
-        REQUIRE_NOTHROW(lua.register_function("foo", [](elem){}));
+    #define MACRO(r, data, Elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem){})); \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem, Elem){}));
     BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
     #undef MACRO
 }
@@ -107,8 +108,9 @@ TEST_CASE( "coverage/void_lambda_call", "Check if basic calls in form of void <l
 TEST_CASE("coverage/type_lambda_call", "Check if basic calls in form of T <lambda>(T) compile.") {
     lua::state lua(&exceptionErrorReporter);
 
-    #define MACRO(r, data, elem) \
-        REQUIRE_NOTHROW(lua.register_function("foo", [](elem){ return elem {}; }));
+    #define MACRO(r, data, Elem) \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem){ return Elem {}; })); \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem, Elem){ return Elem {}; })); \
     BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
     #undef MACRO
 }
