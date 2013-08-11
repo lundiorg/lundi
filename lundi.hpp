@@ -242,6 +242,16 @@ public:
         register_wrapper(name, wrapper);
         wrappers.push_back(wrapper);
     }
+
+    bool operator== (state const& other) {
+        return state_ == other.state_;
+    }
+    bool operator!= (state const& other) {
+        return !(*this == other);
+    }
+
+    // kbok-table
+    friend class ref;
 };
 
 } // lua

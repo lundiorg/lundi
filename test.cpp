@@ -4,6 +4,7 @@
 #include <exception>
 
 #include "lundi.hpp"
+#include "lundi/ref.hpp"
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
