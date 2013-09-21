@@ -110,13 +110,9 @@ TEST_CASE("coverage/type_lambda_call", "Check if basic calls in form of T <lambd
 
     #define MACRO(r, data, Elem) \
         REQUIRE_NOTHROW(lua.register_function("foo", [](Elem){ return Elem {}; })); \
-        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem, Elem){ return Elem {}; })); \
+        REQUIRE_NOTHROW(lua.register_function("foo", [](Elem, Elem){ return Elem {}; }));
     BOOST_PP_SEQ_FOR_EACH(MACRO, _, BASIC_TYPES)
     #undef MACRO
-}
-
-TEST_CASE("coverage/functor_call", "Check if basic calls in form of void <functor>(T) compile.") {
-
 }
 
 TEST_CASE( "simple/set_global", "Check if the set_global works properly." ) {
