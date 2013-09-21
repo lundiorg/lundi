@@ -41,9 +41,36 @@ public:
     virtual ~function_wrapper() {};
 };
 
+std::string get_type_name(int lua_type_name) {
+    switch (lua_type_name) {
+        case LUA_TNUMBER:        return "number";
+        case LUA_TBOOLEAN:       return "bool";
+        case LUA_TSTRING:        return "string";
+        case LUA_TNIL:           return "nil";
+        case LUA_TUSERDATA:      return "userdata";
+        case LUA_TTHREAD:        return "thread";
+        case LUA_TLIGHTUSERDATA: return "lightuserdata";
+        case LUA_TTABLE:         return "table";
+        case LUA_TFUNCTION:      return "function";
+        default: return "unknown-type";
+    }
+}
+
 struct fetch_parameter {
     lua_State *state;
     fetch_parameter(lua_State *s) : state(s) {}
+
+    // that function is complementary to peek
+    // the main difference is that it knows what to expect
+
+    // the template version is more flexible, but produces no error message
+    /*template<typename T>
+    void operator()(T&) const {
+        static_assert(false, "This type can't be used in function signature.");
+    }*/
+
+    // TODO : add error reporting to that
+    // it has to utilize userdata stored in state somehow
 
     void operator()(std::string& t) const {
         t = lua_tostring(state, -1);
@@ -51,7 +78,21 @@ struct fetch_parameter {
     }
 
     void operator()(int& t) const {
+        t = lua_tointeger(state, -1);
+        lua_pop(state, 1);
+    }
+
+    void operator()(double& t) const {
         t = lua_tonumber(state, -1);
+        lua_pop(state, 1);
+    }
+
+    void operator()(bool& t) const {
+        t = static_cast<bool>(lua_toboolean(state, -1));
+        lua_pop(state, 1);
+    }
+
+    void operator()(lua::nil_type&) const {
         lua_pop(state, 1);
     }
 };
@@ -131,6 +172,10 @@ char const *stream_name(StreamT &stream) {
 class state {
     lua_State *state_;
     std::function<void(std::string const&)> error_func_;
+    void report_error(std::string const& error_message) {
+        if (error_func_)
+            error_func_(error_message);
+    }
 
     variant peek(int index) {
         switch(lua_type(state_, index)) {
@@ -165,8 +210,7 @@ class state {
                 error_msg = std::string(lua_tostring(state_, -1));
                 lua_pop(state_, -1); // remove error message
             }
-            if (error_func_)
-                error_func_(error_msg);
+            report_error(error_msg);
         }
     }
 
