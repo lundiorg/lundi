@@ -145,12 +145,6 @@ class state {
         return nil;
     }
 
-    variant pop() {
-        variant value = peek(-1);
-        lua_pop(state_, 1);
-        return value;
-    }
-
     // handles error values returned by various C API function
     // It isn't intended to be called directly!
     void protect (int err) {
@@ -204,6 +198,12 @@ public:
         lua_setglobal(state_, name.c_str());
     }
 
+    variant pop() {
+        variant value = peek(-1);
+        lua_pop(state_, 1);
+        return value;
+    }
+
     // This overload is used to fix "broken" bool overload with literals
     // It might be needed to set up a proper bool type from scratch.
     template <std::size_t N>
@@ -248,6 +248,10 @@ public:
     }
     bool operator!= (state const& other) {
         return !(*this == other);
+    }
+
+    operator lua_State *() {
+        return state_;
     }
 
     // kbok-table

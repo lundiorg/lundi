@@ -8,11 +8,6 @@ namespace lua {
 class ref {
     state &state_;
 
-    /* I think that one is unnecessary
-    lua_State *state() {
-        return state_.state_;
-    }
-    */
 public:
     /* Constructs a new reference to the element at the given index.
     * This create a strong reference, thus preventing collection
@@ -29,7 +24,7 @@ public:
     * the reference count, requiring both copies to be destroyed for the
     * referenced object to be collectable.
     */
-    ref(ref /*const*/ &other)
+    ref(ref const &other)
         : state_(other.state_) {
             lua_pushlightuserdata(state_.state_, this);
             other.push();
@@ -58,10 +53,14 @@ public:
         lua_rawset(state_.state_, LUA_REGISTRYINDEX);
     }
 
-    int push() {
-        lua_pushlightuserdata(state_.state_, this);
+    int push() const {
+        lua_pushlightuserdata(state_.state_, const_cast<void *>(reinterpret_cast<void const *>(this)));
         lua_rawget(state_.state_, LUA_REGISTRYINDEX);
-        return lua_absindex(state_.state_, -1);
+        return lua_gettop(state_.state_);
+    }
+
+    state &state() {
+        return state_;
     }
 };
 
@@ -99,19 +98,21 @@ public:
     }
 
     void set(variant const &key, variant const &value) {
+        lua::detail::push_variant push(ref_.state());
         int table_idx = ref_.push();
-        key.push();
-        value.push();
-        lua_settable(ref.state(), table_idx);
-        lua_pop(ref.state());
+        boost::apply_visitor(push, key);
+        boost::apply_visitor(push, value);
+        lua_settable(ref_.state(), table_idx);
+        lua_pop(ref_.state(), 1);
     }
 
     variant get(variant const &key) {
+        lua::detail::push_variant push(ref_.state());
         int table_idx = ref_.push();
-        key.push();
-        lua_gettable(ref.state(), hnd);
-        variant value = state.pop();
-        lua_pop(ref.state());
+        boost::apply_visitor(push, key);
+        lua_gettable(ref_.state(), table_idx);
+        variant value = ref_.state().pop();
+        lua_pop(ref_.state(), 1);
         return value;
     }
 };
