@@ -4,6 +4,7 @@
 #include <exception>
 
 #include "lundi.hpp"
+#include "lundi/ref.hpp"
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
@@ -170,3 +171,22 @@ TEST_CASE( "negative/basicError", "Check if error handling works correctly" ) {
     REQUIRE_THROWS( lua.eval("nil[5]") );
 }
 
+TEST_CASE( "table/simple", "Check assignment in tables") {
+    lua::state lua(&exceptionErrorReporter);
+
+    lua.create_table("mytable");
+
+    lua.register_function("fill_table", [](lua::ref r) {
+        lua::table<lua::variant> t(r);
+        t["x"] = 5;
+        t["y"] = std::string("hello");
+    });
+
+    lua.eval("fill_table(mytable)");
+
+    lua.eval("myx = mytable.x");
+    REQUIRE(equals(lua.get_global("myx"), 5));
+
+    lua.eval("myy = mytable.y");
+    REQUIRE(equals(lua.get_global("myy"), "hello"));
+}

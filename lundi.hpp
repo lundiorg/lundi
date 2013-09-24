@@ -54,6 +54,11 @@ struct fetch_parameter {
         t = lua_tonumber(state, -1);
         lua_pop(state, 1);
     }
+
+    void operator()(lua::ref& t) const {
+        t = lua::ref(state, -1);
+        lua_pop(state, 1);
+    }
 };
 
 template<typename Ret, typename... Args>
@@ -64,8 +69,7 @@ public:
     template<typename FRet, typename... FArgs>
     struct function_invoker {
         int operator()(FuncType& func, boost::fusion::vector<FArgs...>& params, lua_State* state) {
-            variant result = invoke(func, params);
-            boost::apply_visitor(detail::push_variant(state), result);
+            push(state, invoke(func, params));
             return 1;
         }
     };
@@ -132,25 +136,6 @@ class state {
     lua_State *state_;
     std::function<void(std::string const&)> error_func_;
 
-    variant peek(int index) {
-        switch(lua_type(state_, index)) {
-            case LUA_TNUMBER:
-                return lua_tonumber(state_, index);
-            case LUA_TBOOLEAN:
-                return static_cast<bool>(lua_toboolean(state_, index));
-            case LUA_TSTRING:
-                return lua_tostring(state_, index);
-            // TODO : function?
-        }
-        return nil;
-    }
-
-    variant pop() {
-        variant value = peek(-1);
-        lua_pop(state_, 1);
-        return value;
-    }
-
     // handles error values returned by various C API function
     // It isn't intended to be called directly!
     void protect (int err) {
@@ -172,13 +157,12 @@ class state {
 
     variant call_r(int nargs) {
         protect(lua_pcall(state_, nargs, 1, 0));
-        return pop();
+        return pop(state_);
     }
 
     template<typename T, typename... Args>
     variant call_r(int nargs, T t, Args... args) {
-        variant value = t;
-        boost::apply_visitor(detail::push_variant(state_), value);
+        push(state_, t);
         return call_r(nargs + 1, args...);
     }
 
@@ -200,7 +184,7 @@ public:
     }
 
     void set_global(std::string const &name, variant value) {
-        boost::apply_visitor(detail::push_variant(state_), value);
+        boost::apply_visitor(detail::variant_pusher<lua_State*>(state_), value);
         lua_setglobal(state_, name.c_str());
     }
 
@@ -211,7 +195,12 @@ public:
 
     variant get_global(std::string const &name) {
         lua_getglobal(state_, name.c_str());
-        return pop();
+        return pop(state_);
+    }
+
+    void create_table(std::string const &name) {
+        lua_createtable(state_, 0, 0);
+        lua_setglobal(state_, name.c_str());
     }
 
     proxy<variant, state> operator[](std::string name) {
@@ -242,6 +231,20 @@ public:
         register_wrapper(name, wrapper);
         wrappers.push_back(wrapper);
     }
+
+    bool operator== (state const& other) {
+        return state_ == other.state_;
+    }
+    bool operator!= (state const& other) {
+        return !(*this == other);
+    }
+
+    operator lua_State *() {
+        return state_;
+    }
+
+    // kbok-table
+    friend class ref;
 };
 
 } // lua
